@@ -17,7 +17,7 @@ mongoose.connect('mongodb://localhost:27017/Semestral', {
   useUnifiedTopology: true
 });
 const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 db.once('open', () => {
   console.log('Connected to MongoDB');
 });
@@ -31,12 +31,33 @@ const limiter = rateLimit({
 
 app.use('/api/', limiter);
 
-// Mock user data (replace with MongoDB user model)
-const User = mongoose.model('User', {
+// Define schema and model for user
+const userSchema = new mongoose.Schema({
   username: String,
   password: String,
   role: String
 });
+
+const User = mongoose.model('User', userSchema);
+
+// Middleware to verify JWT and role
+const verifyToken = (req, res, next) => {
+  const token = req.headers['authorization'];
+
+  if (!token) {
+    return res.status(403).json({ message: 'No token provided' });
+  }
+
+  jwt.verify(token, 'secret_key', (err, decoded) => {
+    if (err) {
+      return res.status(500).json({ message: 'Failed to authenticate token' });
+    }
+
+    req.userId = decoded.id;
+    req.userRole = decoded.role;
+    next();
+  });
+};
 
 // Register route
 app.post('/api/register', async (req, res) => {
@@ -87,13 +108,30 @@ app.post('/api/login', async (req, res) => {
     // Create JWT token
     const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, 'secret_key', { expiresIn: '1h' });
 
-    res.json({ token });
+    res.json({ token, role: user.role });
   } catch (error) {
     console.error('Error al iniciar sesión:', error);
     res.status(500).json({ message: 'Error al iniciar sesión' });
   }
 });
 
+// Route to get all users (accessible only by admin)
+app.get('/api/users', verifyToken, async (req, res) => {
+  if (req.userRole !== 'admin') {
+    return res.status(403).json({ message: 'Access denied' });
+  }
+
+  try {
+    const users = await User.find({}, 'username role'); // Retrieve usernames and roles only
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Error fetching users' });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+//SARAAAAAAAAAAAAAAAAAAA
+//una de las medidas que hay que implemengtar es http verdad????

@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-
 import axios from 'axios';
 
 const Register = () => {
-  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [formData, setFormData] = useState({ username: '', password: '', firstName: '', lastName: '' });
   const [message, setMessage] = useState('');
 
   const handleChange = (e) => {
@@ -18,6 +16,7 @@ const Register = () => {
       const response = await axios.post('http://localhost:5000/api/register', formData);
       console.log('Usuario registrado: ', response.data);
       setMessage('Usuario registrado exitosamente');
+      // Aquí puedes manejar la redirección después del registro exitoso
     } catch (error) {
       console.error('Error al intentar registrar usuario: ', error);
       setMessage('Error al registrar usuario');
@@ -28,6 +27,14 @@ const Register = () => {
     <div>
       <h2>Registro</h2>
       <form onSubmit={handleSubmit}>
+        <label>
+          Nombre:
+          <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} required />
+        </label>
+        <label>
+          Apellido:
+          <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} required />
+        </label>
         <label>
           Usuario:
           <input type="text" name="username" value={formData.username} onChange={handleChange} required />

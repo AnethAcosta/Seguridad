@@ -1,37 +1,43 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-
+// components/Home.js
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-const Home = () => {
-  const [users, setUsers] = React.useState([]);
-  const [message, setMessage] = React.useState('');
+const Home = ({ role }) => {
+  const [users, setUsers] = useState([]);
 
-  React.useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/users');
-        setUsers(response.data);
-      } catch (error) {
-        console.error('Error al obtener usuarios: ', error);
-        setMessage('Error al obtener usuarios');
-      }
-    };
-    fetchUsers();
-  }, []);
+  useEffect(() => {
+    if (role === 'admin') {
+      // Fetch users if the role is admin
+      const fetchUsers = async () => {
+        try {
+          const response = await axios.get('http://localhost:5000/api/users', {
+            headers: {
+              Authorization: localStorage.getItem('token') // Asumiendo que estás almacenando el token en localStorage
+            }
+          });
+          setUsers(response.data);
+        } catch (error) {
+          console.error('Error fetching users', error);
+        }
+      };
+      fetchUsers();
+    }
+  }, [role]);
 
   return (
     <div>
-      <h2>Home</h2>
-      {message && <p>{message}</p>}
-      {users.length > 0 ? (
-        <ul>
-          {users.map(user => (
-            <li key={user.id}>{user.username}</li>
-          ))}
-        </ul>
+      <h2>Página de inicio</h2>
+      {role === 'admin' ? (
+        <div>
+          <h3>Usuarios registrados</h3>
+          <ul>
+            {users.map((user) => (
+              <li key={user.id}>{user.username}</li>
+            ))}
+          </ul>
+        </div>
       ) : (
-        <p>No hay usuarios registrados</p>
+        <p>Bienvenido al sistema. Esta es tu página de inicio.</p>
       )}
     </div>
   );

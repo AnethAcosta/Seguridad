@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import axios from 'axios';
 
 const Login = () => {
-  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [formData, setFormData] = useState({ username: '', password: '', firstName: '', lastName: '' });
   const [message, setMessage] = useState('');
 
   const handleChange = (e) => {
